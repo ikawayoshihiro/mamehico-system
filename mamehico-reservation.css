@@ -1,0 +1,219 @@
+@import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;500;700&display=swap');
+
+:root {
+    --res-bg: #f7f6f3;
+    --res-surface: #ffffff;
+    --res-border: #d8d5cf;
+    --res-border-focus: #2E303E;
+    --res-text: #1a1a2e;
+    --res-text-sub: #888882;
+    --res-active-bg: #2E303E;
+    --res-active-text: #ffffff;
+    --res-disabled: #c8c5bf;
+    --res-error: #c0392b;
+    --res-cash: #3b5a8a;
+}
+
+#mamehico-reservation-root {
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    background: #ffffff;
+    color: #2E303E;
+    border-radius: 2px;
+    padding: 36px 32px;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+@media (max-width: 600px) {
+    #mamehico-reservation-root { padding: 24px 16px; }
+}
+
+#mamehico-reservation-root * {
+    box-sizing: border-box;
+}
+
+#mamehico-reservation-root button,
+#mamehico-reservation-root input {
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    background-color: transparent;
+    color: #2E303E;
+    border-color: #d8d5cf;
+    border-radius: 2px;
+    box-shadow: none;
+    outline: none;
+}
+
+#mamehico-reservation-root button:hover {
+    background-color: transparent;
+    color: #2E303E;
+}
+
+#mamehico-reservation-root .res-date-btn {
+    background: transparent !important;
+    color: #2E303E !important;
+    border: 1px solid #d8d5cf !important;
+}
+
+#mamehico-reservation-root .res-date-btn:disabled {
+    opacity: 0.2 !important;
+    border-color: transparent !important;
+    background: transparent !important;
+    color: #2E303E !important;
+}
+
+#mamehico-reservation-root .res-date-btn.active {
+    background: #2E303E !important;
+    border-color: #2E303E !important;
+    color: #ffffff !important;
+}
+
+#mamehico-reservation-root .res-slot-btn {
+    background: transparent !important;
+    color: #2E303E !important;
+    border: 1px solid #d8d5cf !important;
+}
+
+#mamehico-reservation-root .res-slot-btn.active {
+    background: #2E303E !important;
+    border-color: #2E303E !important;
+    color: #ffffff !important;
+}
+
+#mamehico-reservation-root .res-slot-btn:disabled {
+    opacity: 0.25 !important;
+}
+
+#mamehico-reservation-root .res-nav-btn {
+    background: transparent !important;
+    color: #2E303E !important;
+    border: 1px solid #d8d5cf !important;
+}
+
+#mamehico-reservation-root .res-nav-btn:hover:not(:disabled) {
+    background: #2E303E !important;
+    color: #ffffff !important;
+    border-color: #2E303E !important;
+}
+
+#mamehico-modal-inner {
+    border: none !important;
+    max-width: 500px !important;
+}
+
+#mamehico-modal-inner > #mamehico-reservation-root {
+    border: none;
+}
+
+#mamehico-reservation-root .res-field input {
+    border: 1px solid #d8d5cf !important;
+    background: #f7f6f3 !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+#mamehico-reservation-root .res-field input:focus {
+    border: 1px solid #2E303E !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.res-title { text-align: center; font-size: 1.3rem; letter-spacing: 0.2em; color: var(--res-text); margin-bottom: 6px; font-weight: 500; }
+.res-subtitle { text-align: center; font-size: 0.9rem; color: var(--res-text-sub); letter-spacing: 0.1em; margin-bottom: 40px; }
+.res-divider { border: none; border-top: 1px solid var(--res-border); margin: 28px 0; }
+.res-section-label { font-size: 0.85rem; letter-spacing: 0.18em; color: var(--res-text-sub); margin-bottom: 14px; display: block; font-weight: 500; }
+
+.res-month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.res-month-nav .month-label { font-size: 1.05rem; letter-spacing: 0.12em; font-weight: 500; }
+
+.res-nav-btn { background: transparent; border: 1px solid var(--res-border); color: var(--res-text); border-radius: 2px; padding: 6px 16px; cursor: pointer; font-size: 0.95rem; font-family: inherit; transition: all 0.1s; }
+.res-nav-btn:hover:not(:disabled) { border-color: var(--res-text); background: var(--res-text); color: #fff; }
+.res-nav-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+
+.res-date-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-bottom: 8px; }
+.res-date-header { text-align: center; font-size: 0.8rem; color: var(--res-text-sub); padding: 6px 0; }
+
+.res-date-btn { background: transparent; border: 1px solid var(--res-border); color: var(--res-text); border-radius: 2px; padding: 8px 2px; font-size: 0.95rem; cursor: pointer; text-align: center; transition: all 0.1s; font-family: inherit; min-height: 42px; display: flex; align-items: center; justify-content: center; }
+.res-date-btn:hover:not(:disabled) { border-color: var(--res-text); }
+.res-date-btn.active { background: var(--res-active-bg); border-color: var(--res-active-bg); color: var(--res-active-text); }
+.res-date-btn:disabled { opacity: 0.2; cursor: not-allowed; border-color: transparent; }
+.res-date-btn.empty { border-color: transparent; cursor: default; }
+.res-date-btn .day-num { font-size: 1rem; line-height: 1; }
+.res-date-btn .day-name { display: none; }
+.res-date-btn .day-event-title { display: block; font-size: 0.6rem; line-height: 1.3; margin-top: 3px; letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.res-date-btn .day-event-venue { display: block; font-size: 0.55rem; line-height: 1.2; color: var(--res-text-sub); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.res-date-btn.active .day-event-venue { color: rgba(255,255,255,0.6); }
+.res-date-btn[data-date] { flex-direction: column; padding: 6px 4px; min-height: 52px; }
+
+.res-slots { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.res-slot-btn { background: transparent; border: 1px solid var(--res-border); color: var(--res-text); border-radius: 2px; padding: 14px; cursor: pointer; text-align: left; transition: all 0.1s; font-family: inherit; }
+.res-slot-btn:hover:not(:disabled) { border-color: var(--res-text); }
+.res-slot-btn.active { background: var(--res-active-bg); border-color: var(--res-active-bg); color: var(--res-active-text); }
+.res-slot-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+.slot-time { font-size: 1.1rem; display: block; margin-bottom: 4px; font-weight: 500; }
+.slot-avail { font-size: 0.82rem; color: var(--res-text-sub); }
+.res-slot-btn.active .slot-avail { color: rgba(255,255,255,0.5); }
+.slot-avail.low { color: #a05a20; }
+.slot-avail.full { color: var(--res-error); }
+
+.res-count-row { display: flex; align-items: center; gap: 14px; }
+.res-count-btn { background: transparent; border: 1px solid var(--res-border); color: var(--res-text); border-radius: 2px; width: 38px; height: 38px; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: all 0.1s; font-family: inherit; }
+.res-count-btn:hover:not(:disabled) { border-color: var(--res-text); background: var(--res-text); color: #fff; }
+.res-count-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+.res-count-display { font-size: 1.5rem; min-width: 36px; text-align: center; font-weight: 300; }
+.res-count-label { color: var(--res-text-sub); font-size: 0.95rem; }
+
+.res-field { margin-bottom: 18px; }
+.res-field label { display: block; font-size: 0.85rem; letter-spacing: 0.14em; color: var(--res-text-sub); margin-bottom: 8px; font-weight: 500; }
+.res-field input { width: 100%; background: var(--res-bg); border: 1px solid var(--res-border); border-radius: 2px; padding: 12px 14px; color: var(--res-text); font-size: 1rem; font-family: inherit; transition: border-color 0.1s; outline: none; }
+.res-field input:focus { border-color: var(--res-border-focus); background: #fff; }
+.res-field input::placeholder { color: var(--res-disabled); }
+
+.res-payment-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.res-payment-btn { background: transparent; border: 1px solid var(--res-border); color: var(--res-text); border-radius: 2px; padding: 16px 12px; cursor: pointer; text-align: center; transition: all 0.2s; font-family: inherit; }
+.res-payment-btn:hover { border-color: var(--res-text); }
+#mamehico-reservation-root .res-payment-btn.active { background: #2E303E !important; border-color: #2E303E !important; color: #ffffff !important; }
+#mamehico-reservation-root .res-payment-btn.active .payment-note { color: rgba(255,255,255,0.55) !important; }
+#mamehico-reservation-root .res-payment-btn.active .payment-icon svg { stroke: #ffffff !important; }
+.payment-icon { display: block; margin-bottom: 8px; line-height: 1; }
+.payment-icon svg { display: block; margin: 0 auto; }
+.payment-label { font-size: 1rem; display: block; font-weight: 500; }
+.payment-note { font-size: 0.78rem; color: var(--res-text-sub); display: block !important; margin-top: 4px; visibility: visible !important; opacity: 1; }
+#mamehico-reservation-root .payment-note { color: #888882 !important; display: block !important; }
+
+.res-summary { background: var(--res-bg); border: 1px solid var(--res-border); border-radius: 2px; padding: 20px 22px; margin-bottom: 20px; }
+.res-summary-row { display: flex; justify-content: space-between; font-size: 0.95rem; padding: 6px 0; color: var(--res-text-sub); border-bottom: 1px solid var(--res-border); }
+.res-summary-row:last-child { border-bottom: none; }
+.res-summary-row .val { color: var(--res-text); font-weight: 500; }
+.res-summary-row.total { padding-top: 14px; color: var(--res-text); font-size: 1.05rem; font-weight: 500; border-bottom: none; border-top: 1px solid var(--res-border); }
+.res-summary-row.total .val { font-size: 1.25rem; }
+
+.res-submit-btn { width: 100%; background: var(--res-active-bg); border: 1px solid var(--res-active-bg); border-radius: 2px; padding: 16px; color: #fff; font-size: 1rem; letter-spacing: 0.14em; cursor: pointer; font-family: inherit; font-weight: 500; transition: all 0.1s; }
+.res-submit-btn:hover:not(:disabled) { opacity: 0.75; }
+.res-submit-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.res-submit-btn.cash { background: transparent; border-color: var(--res-cash); color: var(--res-cash); }
+.res-submit-btn.cash:hover:not(:disabled) { background: var(--res-cash); color: #fff; }
+
+.res-error { color: var(--res-error); font-size: 0.9rem; padding: 10px 14px; background: #fdf2f2; border: 1px solid #f0d0d0; border-radius: 2px; margin-top: 12px; }
+.res-note { font-size: 0.85rem; color: var(--res-text-sub); text-align: center; margin-top: 14px; line-height: 1.8; }
+
+.res-steps { display: flex; justify-content: center; gap: 6px; margin-bottom: 36px; }
+.res-step { width: 24px; height: 2px; background: var(--res-border); transition: all 0.2s; border-radius: 1px; }
+.res-step.active { background: var(--res-text); }
+.res-step.done { background: var(--res-text-sub); }
+
+.res-back-btn { background: transparent; border: none; color: var(--res-text-sub); font-size: 0.9rem; cursor: pointer; font-family: inherit; padding: 0; margin-bottom: 24px; display: flex; align-items: center; gap: 6px; letter-spacing: 0.06em; transition: color 0.1s; }
+.res-back-btn:hover { color: var(--res-text); }
+.res-loading-text { text-align: center; padding: 40px; color: var(--res-text-sub); font-size: 1rem; letter-spacing: 0.08em; }
+
+/* 日付リスト（ヨシノ用） */
+#date-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; margin-bottom: 4px; }
+.res-datelist-btn { display: flex; align-items: center; gap: 8px; background: transparent; border: 1px solid var(--res-border); border-radius: 2px; padding: 6px 10px; cursor: pointer; font-family: inherit; text-align: left; transition: border-color 0.1s; }
+.res-datelist-btn:hover { border-color: var(--res-text); }
+.res-datelist-btn.active { background: var(--res-active-bg); border-color: var(--res-active-bg); color: var(--res-active-text); }
+#mamehico-reservation-root .res-datelist-btn.active { background: #2E303E !important; border-color: #2E303E !important; color: #ffffff !important; }
+#mamehico-reservation-root .res-datelist-btn.active .datelist-venue { color: rgba(255,255,255,0.65) !important; }
+.datelist-date { font-size: 0.78rem; font-weight: 500; white-space: nowrap; }
+.datelist-info { display: flex; align-items: center; gap: 6px; }
+.datelist-title { font-size: 0.78rem; }
+.datelist-venue { font-size: 0.72rem; color: var(--res-text-sub); }
