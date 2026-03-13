@@ -11,12 +11,6 @@ add_action('admin_menu', function() {
     add_submenu_page('yoshino-calendar','基本設定','基本設定','manage_options','yoshino-settings','yoshino_settings_page');
 });
 
-if (!function_exists('yoshino_reservations_page')) {
-    function yoshino_reservations_page() {
-        echo '<div class="wrap"><h1>ヨシノ予約一覧</h1><p>この機能は現在開発中です。</p></div>';
-    }
-}
-
 if (!function_exists('yoshino_firebase_config')) {
     function yoshino_firebase_config() {
         return json_encode(array(
