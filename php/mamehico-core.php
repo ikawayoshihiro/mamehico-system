@@ -1,9 +1,10 @@
 <?php
 /**
- * MAMEHICO 予約システム コアスニペット v2.2.20
+ * MAMEHICO 予約システム コアスニペット v2.2.21
  * 銀座ランチ・ヨシノ系 共通
  *
  * 更新履歴
+ * v2.2.21 - 2026-03-13 管理画面「システム更新」ページ追加（deploy.sh実行）
  * v2.2.20 - 2026-03-13 モーダルトリガーをIIFE+readyState対応に変更（DOMContentLoaded競合対策）
  * v2.2.19 - 2026-03-12 food_box_selectionsをsend-confirmation/create-checkout/yoshino完了ページに追加（{food_box_summary}対応）
  * v2.2.18 - 2026-03-12 デフォルトメールテンプレートを正式版に更新（venue/coin_summary/公演名追加）
@@ -274,8 +275,8 @@ function mamehico_remove_empty_lines($text) {
     $lines = explode("\n", $text);
     $filtered = array_filter($lines, function($line) {
         $trimmed = trim($line);
-        if (preg_match('/[:\uff1a]\s*なし\s*$/', $trimmed)) return false;
-        if (preg_match('/[:\uff1a]\s*$/', $trimmed)) return false;
+        if (preg_match('/[：\uff1a]\s*なし\s*$/', $trimmed)) return false;
+        if (preg_match('/[：\uff1a]\s*$/', $trimmed)) return false;
         return true;
     });
     return implode("\n", $filtered);
@@ -499,7 +500,7 @@ async function init(){
     const[y,m,d]=date.split("-"),dateObj=new Date(+y,+m-1,+d),si=SL[slot],total=6000*count;
     root.innerHTML=\'<div class="success-icon">✓</div><div class="success-title">ご予約ありがとうございます</div><div class="success-sub">確認メールをお送りしました</div><div class="success-detail">\'+rows([
       ["日付",+m+"月"+ +d+"日（"+DJ[dateObj.getDay()]+"）"],
-      ["時間",slot+" — "+(si?si.end:"")+"（120分）"],
+      ["時間",slot+" — "+(si?si.end:"")+("120分）"],
       ["人数",count+"名"],["お支払い","店頭でお支払い"],
       ["小計（税別）","¥"+total.toLocaleString()],
       ["消費税（10%）","¥"+Math.floor(total*.1).toLocaleString()],
@@ -538,7 +539,7 @@ async function init(){
     const[y,m,d]=date.split("-"),dateObj=new Date(+y,+m-1,+d),total=6000*+count;
     root.innerHTML=\'<div class="success-icon">✓</div><div class="success-title">ご予約ありがとうございます</div><div class="success-sub">確認メールを \'+email+\' にお送りしました</div><div class="success-detail">\'+rows([
       ["日付",+m+"月"+ +d+"日（"+DJ[dateObj.getDay()]+"）"],
-      ["時間",slot+" — "+(si?si.end:"")+"（120分）"],
+      ["時間",slot+" — "+(si?si.end:"")+("120分）"],
       ["人数",count+"名"],["お名前",name+" 様"],["お支払い","クレジットカード"],
       ["消費税（10%）","¥"+Math.floor(total*.1).toLocaleString()],
       ["合計","¥"+Math.floor(total*1.1).toLocaleString()]
@@ -654,3 +655,52 @@ init();
     });
     return '<div id="mamehico-success-root"><p style="text-align:center;padding:40px;color:#888">確認中...</p></div>';
 });
+
+// ============================================================
+// 管理画面: システム更新ページ v2.2.21
+// ============================================================
+add_action('admin_menu', function() {
+    add_submenu_page(
+        'mamehico-ginza-calendar',
+        'システム更新',
+        '🔄 システム更新',
+        'manage_options',
+        'mamehico-deploy',
+        'mamehico_deploy_page'
+    );
+});
+
+function mamehico_deploy_page() {
+    if (!current_user_can('manage_options')) wp_die('権限がありません');
+    $result_html = '';
+    if (isset($_POST['mamehico_deploy']) && check_admin_referer('mamehico_deploy_action')) {
+        $home   = trim(shell_exec('echo $HOME'));
+        $script = $home . '/deploy.sh';
+        if (file_exists($script) && is_executable($script)) {
+            $output = shell_exec('bash ' . escapeshellarg($script) . ' 2>&1');
+            $result_html = '<div style="background:#f0faf4;border:1px solid #a8d5b5;border-radius:4px;padding:16px 20px;margin-bottom:24px">'
+                . '<p style="color:#2d7a4f;font-weight:500;margin:0 0 10px">✓ デプロイ完了</p>'
+                . '<pre style="font-size:12px;color:#333;white-space:pre-wrap;margin:0;font-family:monospace">' . esc_html($output) . '</pre>'
+                . '</div>';
+        } else {
+            $result_html = '<div style="background:#fdf0f0;border:1px solid #f0c0c0;border-radius:4px;padding:16px 20px;margin-bottom:24px">'
+                . '<p style="color:#c0392b;margin:0">❌ deploy.sh が見つからないか実行権限がありません</p>'
+                . '<p style="color:#888;font-size:12px;margin:6px 0 0">パス: ' . esc_html($script) . '</p>'
+                . '</div>';
+        }
+    }
+    ?>
+    <div class="wrap" style="max-width:600px;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif">
+        <h1 style="font-size:20px;font-weight:500;color:#2E303E;margin-bottom:8px">🔄 システム更新</h1>
+        <p style="color:#888;font-size:13px;margin-bottom:24px">GitHubから最新コードを取得して本番に反映します。</p>
+        <?php echo $result_html; ?>
+        <form method="post">
+            <?php wp_nonce_field('mamehico_deploy_action'); ?>
+            <button type="submit" name="mamehico_deploy"
+                style="background:#2E303E;color:#fff;border:none;border-radius:4px;padding:12px 32px;font-size:14px;cursor:pointer;font-family:inherit;font-weight:500">
+                今すぐ更新する
+            </button>
+        </form>
+    </div>
+    <?php
+}
