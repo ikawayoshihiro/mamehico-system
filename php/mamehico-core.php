@@ -1,9 +1,10 @@
 <?php
 /**
- * MAMEHICO 予約システム コアスニペット v2.2.19
+ * MAMEHICO 予約システム コアスニペット v2.2.20
  * 銀座ランチ・ヨシノ系 共通
  *
  * 更新履歴
+ * v2.2.20 - 2026-03-13 モーダルトリガーをIIFE+readyState対応に変更（DOMContentLoaded競合対策）
  * v2.2.19 - 2026-03-12 food_box_selectionsをsend-confirmation/create-checkout/yoshino完了ページに追加（{food_box_summary}対応）
  * v2.2.18 - 2026-03-12 デフォルトメールテンプレートを正式版に更新（venue/coin_summary/公演名追加）
  * v2.2.17 - 2026-03-12 yoshinoテンプレートをカテゴリー共通化・空値行削除
@@ -22,8 +23,8 @@
 // ============================================================
 add_action('wp_enqueue_scripts', function() {
     $dir = get_stylesheet_directory_uri();
-    wp_enqueue_style( 'mamehico-reservation', $dir . '/mamehico-reservation.css', [], '2.2.19');
-    wp_enqueue_script('mamehico-reservation', $dir . '/mamehico-reservation-core.js', [], '2.2.19', true);
+    wp_enqueue_style( 'mamehico-reservation', $dir . '/mamehico-reservation.css', [], '2.2.20');
+    wp_enqueue_script('mamehico-reservation', $dir . '/mamehico-reservation-core.js', [], '2.2.20', true);
 });
 
 // ============================================================
@@ -418,7 +419,31 @@ function mamehico_modal_html($trigger_id) {
 #mamehico-modal-close:hover{color:#333}
 @media(max-width:600px){#mamehico-modal-overlay{padding:0 10px 30px}#mamehico-modal-inner{margin-top:60px}}
 </style>
-<div id="mamehico-modal-overlay" onclick="if(event.target===this)this.style.display=\'none\'">\n  <div id="mamehico-modal-inner">\n    <button id="mamehico-modal-close" onclick="document.getElementById(\'mamehico-modal-overlay\').style.display=\'none\'">✕</button>\n    <div id="mamehico-reservation-root"></div>\n  </div>\n</div>\n<script>\ndocument.addEventListener("DOMContentLoaded",function(){\n    var btns=document.querySelectorAll("#' . $trigger_id . ',.' . $trigger_id . '");\n    btns.forEach(function(btn){\n        btn.addEventListener("click",function(e){\n            e.preventDefault();\n            var o=document.getElementById("mamehico-modal-overlay");\n            o.style.display="flex";o.scrollTop=0;\n        });\n    });\n});\n</script>';
+<div id="mamehico-modal-overlay" onclick="if(event.target===this)this.style.display=\'none\'">
+  <div id="mamehico-modal-inner">
+    <button id="mamehico-modal-close" onclick="document.getElementById(\'mamehico-modal-overlay\').style.display=\'none\'">✕</button>
+    <div id="mamehico-reservation-root"></div>
+  </div>
+</div>
+<script>
+(function(){
+    function init(){
+        var btns=document.querySelectorAll("#' . $trigger_id . ',.' . $trigger_id . '");
+        btns.forEach(function(btn){
+            btn.addEventListener("click",function(e){
+                e.preventDefault();
+                var o=document.getElementById("mamehico-modal-overlay");
+                o.style.display="flex";o.scrollTop=0;
+            });
+        });
+    }
+    if(document.readyState==="loading"){
+        document.addEventListener("DOMContentLoaded",init);
+    }else{
+        init();
+    }
+})();
+</script>';
 }
 
 // ============================================================
@@ -486,7 +511,7 @@ async function init(){
   const pk="ginza_processed_"+sid;
   try{
     const res=await fetch(apiBase+"/verify-session?session_id="+sid),data=await res.json();
-    if(!res.ok){root.innerHTML=\'<div class="error-state">\'+( data.message||"決済の確認に失敗しました。")+\'</div>\';return;}
+    if(!res.ok){root.innerHTML=\'<div class="error-state">\'+(data.message||"決済の確認に失敗しました。")+\'</div>\';return;}
     const{metadata:meta,email}=data,{date,slot,count,name}=meta;
     const si=SL[slot];
     if(!localStorage.getItem(pk)){
@@ -573,7 +598,7 @@ async function init(){
   const pk="yoshino_processed_"+sid;
   try{
     const res=await fetch(apiBase+"/verify-session?session_id="+sid),data=await res.json();
-    if(!res.ok){root.innerHTML=\'<div class="error-state">\'+( data.message||"決済の確認に失敗しました。")+\'</div>\';return;}
+    if(!res.ok){root.innerHTML=\'<div class="error-state">\'+(data.message||"決済の確認に失敗しました。")+\'</div>\';return;}
     const{metadata:meta,email}=data;
     const{date,slot,slot_end,count,name,event_id,coin,food_label,food_price,event_title}=meta;
     const foodBoxSelections=(()=>{try{return JSON.parse(meta.food_box_selections||"[]");}catch(e){return[];}})();
