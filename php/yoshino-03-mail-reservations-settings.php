@@ -1,3 +1,4 @@
+<?php
 // ヨシノ管理 ② メールテンプレート・予約一覧・基本設定
 // v2.3.1 - 2026-03-12 {food_box_summary}変数追加・デフォルトテンプレートに追記
 // v2.3.0 - 2026-03-09 予約一覧を月単位表示に変更・人数編集・削除（booked連動）対応
@@ -246,11 +247,11 @@ function yrRenderRow(rid,editing){
         ?'<input type="number" id="yrcnt-'+rid+'" class="yr-cnt-in" value="'+d.count+'" min="1" max="50">名'
         :d.count+'名';
     var actionCell=editing
-        ?'<button class="yr-act save" onclick="yrSaveEdit(\''+rid+'\')" >保存</button>'
-         +'<button class="yr-act cancel" onclick="yrCancelEdit(\''+rid+'\')" >×</button>'
-        :'<button class="yr-act edit" onclick="yrStartEdit(\''+rid+'\')" >編集</button>'
-         +'<button class="yr-act del" onclick="yrDeleteOne(\''+rid+'\')" >削除</button>';
-    return '<tr id="yrrow-'+rid+'"'+(editing?' class="editing"':'')+'>'  
+        ?'<button class="yr-act save" onclick="yrSaveEdit(\''+rid+'\')">保存</button>'
+         +'<button class="yr-act cancel" onclick="yrCancelEdit(\''+rid+'\')">×</button>'
+        :'<button class="yr-act edit" onclick="yrStartEdit(\''+rid+'\')">編集</button>'
+         +'<button class="yr-act del" onclick="yrDeleteOne(\''+rid+'\')">削除</button>';
+    return '<tr id="yrrow-'+rid+'"'+(editing?' class="editing"':'')+'>'
         +'<td><input type="checkbox" class="yr-row-check" data-id="'+rid+'" onchange="yrOnCheck()"></td>'
         +'<td>'+d.date+'</td>'
         +'<td>'+slotLabel+'</td>'
