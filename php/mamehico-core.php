@@ -1,9 +1,10 @@
 <?php
 /**
- * MAMEHICO 予約システム コアスニペット v2.2.22
+ * MAMEHICO 予約システム コアスニペット v2.2.23
  * 銀座ランチ・ヨシノ系 共通
  *
  * 更新履歴
+ * v2.2.23 - 2026-03-15 システム更新をトップレベルメニューに変更（サブメニュー依存解消）
  * v2.2.22 - 2026-03-15 create-checkoutのmetadataにseat_price追加（yoshinoメール¥0バグ修正）、Firestore書き込みにseat_total/food_total/coin_total追加
  * v2.2.21 - 2026-03-13 管理画面「システム更新」ページ追加（deploy.sh実行）
  * v2.2.20 - 2026-03-13 モーダルトリガーをIIFE+readyState対応に変更（DOMContentLoaded競合対策）
@@ -277,8 +278,8 @@ function mamehico_remove_empty_lines($text) {
     $lines = explode("\n", $text);
     $filtered = array_filter($lines, function($line) {
         $trimmed = trim($line);
-        if (preg_match('/[：\x{ff1a}]\s*なし\s*$/u', $trimmed)) return false;
-        if (preg_match('/[：\x{ff1a}]\s*$/u', $trimmed)) return false;
+        if (preg_match('/[：\uff1a]\s*なし\s*$/', $trimmed)) return false;
+        if (preg_match('/[：\uff1a]\s*$/', $trimmed)) return false;
         return true;
     });
     return implode("\n", $filtered);
@@ -661,16 +662,17 @@ init();
 });
 
 // ============================================================
-// 管理画面: システム更新ページ v2.2.21
+// 管理画面: システム更新ページ v2.2.23
 // ============================================================
 add_action('admin_menu', function() {
-    add_submenu_page(
-        'mamehico-ginza-calendar',
+    add_menu_page(
         'システム更新',
-        '🔄 システム更新',
+        'システム更新',
         'manage_options',
         'mamehico-deploy',
-        'mamehico_deploy_page'
+        'mamehico_deploy_page',
+        'dashicons-update',
+        99
     );
 });
 
