@@ -1,9 +1,10 @@
 <?php
 /**
- * MAMEHICO 予約システム コアスニペット v2.2.23
+ * MAMEHICO 予約システム コアスニペット v2.2.24
  * 銀座ランチ・ヨシノ系 共通
  *
  * 更新履歴
+ * v2.2.24 - 2026-03-15 yoshino完了ページのdocument.titleをevent_titleに動的変更（「ヨシノ」→「始めて続ける」等）
  * v2.2.23 - 2026-03-15 システム更新をトップレベルメニューに変更（サブメニュー依存解消）
  * v2.2.22 - 2026-03-15 create-checkoutのmetadataにseat_price追加（yoshinoメール¥0バグ修正）、Firestore書き込みにseat_total/food_total/coin_total追加
  * v2.2.21 - 2026-03-13 管理画面「システム更新」ページ追加（deploy.sh実行）
@@ -595,6 +596,8 @@ async function init(){
     if(venue)detailRows.push(["会場",venue]);
     if(name)detailRows.push(["お名前",name+" 様"]);
     detailRows.push(["人数",count+"名"],["入場",type==="free"?"無料（当日おうえんコイン購入可）":"店頭でお支払い"]);
+    const evTitle=(()=>{try{return sessionStorage.getItem("yoshino_success_event_title")||"";}catch(e){return "";}})();
+    if(evTitle)document.title=evTitle+" ご予約ありがとうございます";
     root.innerHTML=\'<div class="success-icon">✓</div><div class="success-title">ご予約ありがとうございます</div><div class="success-sub">確認メールをお送りしました</div><div class="success-detail">\'+rows(detailRows)+\'</div><p class="success-note">開演時間までにお越しください。<br>キャンセルはお電話にてお願いいたします。<br>TEL: 03-6263-0820</p>\';
     return;
   }
@@ -605,6 +608,7 @@ async function init(){
     if(!res.ok){root.innerHTML=\'<div class="error-state">\'+(data.message||"決済の確認に失敗しました。")+\'</div>\';return;}
     const{metadata:meta,email}=data;
     const{date,slot,slot_end,count,name,event_id,coin,food_label,food_price,event_title}=meta;
+    if(event_title)document.title=event_title+" ご予約ありがとうございます";
     const foodBoxSelections=(()=>{try{return JSON.parse(meta.food_box_selections||"[]");}catch(e){return[];}})();
     if(!localStorage.getItem(pk)){
       const app=getApps().find(a=>a.name==="mamehico-res")||initializeApp(fbCfg,"mamehico-res");
