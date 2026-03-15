@@ -1,9 +1,10 @@
 <?php
 /**
- * MAMEHICO 予約システム コアスニペット v2.2.21
+ * MAMEHICO 予約システム コアスニペット v2.2.22
  * 銀座ランチ・ヨシノ系 共通
  *
  * 更新履歴
+ * v2.2.22 - 2026-03-15 create-checkoutのmetadataにseat_price追加（yoshinoメール¥0バグ修正）、Firestore書き込みにseat_total/food_total/coin_total追加
  * v2.2.21 - 2026-03-13 管理画面「システム更新」ページ追加（deploy.sh実行）
  * v2.2.20 - 2026-03-13 モーダルトリガーをIIFE+readyState対応に変更（DOMContentLoaded競合対策）
  * v2.2.19 - 2026-03-12 food_box_selectionsをsend-confirmation/create-checkout/yoshino完了ページに追加（{food_box_summary}対応）
@@ -124,6 +125,7 @@ function mamehico_create_checkout(WP_REST_Request $request) {
         'metadata[phone]'                  => $phone,
         'metadata[coin]'                   => (string) $coin,
         'metadata[food_label]'             => $food_label,
+        'metadata[seat_price]'             => (string) $seat_price,
         'metadata[food_price]'             => (string) $food_price,
         'metadata[food_box_selections]'    => $food_box_selections_json,
     ]);
@@ -275,8 +277,8 @@ function mamehico_remove_empty_lines($text) {
     $lines = explode("\n", $text);
     $filtered = array_filter($lines, function($line) {
         $trimmed = trim($line);
-        if (preg_match('/[：\uff1a]\s*なし\s*$/', $trimmed)) return false;
-        if (preg_match('/[：\uff1a]\s*$/', $trimmed)) return false;
+        if (preg_match('/[：\x{ff1a}]\s*なし\s*$/u', $trimmed)) return false;
+        if (preg_match('/[：\x{ff1a}]\s*$/u', $trimmed)) return false;
         return true;
     });
     return implode("\n", $filtered);
@@ -607,13 +609,15 @@ async function init(){
       const app=getApps().find(a=>a.name==="mamehico-res")||initializeApp(fbCfg,"mamehico-res");
       const db=getFirestore(app);
       const slotKey=slot.replace(":",""),sdid=date+"_"+slotKey;
+      const seatPriceVal=+(meta.seat_price||0),coinVal=+(coin||0),foodVal=+(food_price||0);
       await setDoc(doc(db,"yoshino_reservations",sid),{
         date,slot,slot_end:slot_end||"",count:+count,name,email,
         phone:meta.phone||"",stripe_session_id:sid,
         payment_method:"card",status:"confirmed",event_id:event_id||"yoshino",
         event_title:event_title||"",
-        coin:+(coin||0),food_label:food_label||"なし",food_price:+(food_price||0),
+        coin:coinVal,food_label:food_label||"なし",food_price:foodVal,
         food_box_selections:foodBoxSelections,
+        seat_total:seatPriceVal*+count,food_total:foodVal*+count,coin_total:coinVal,
         created_at:new Date().toISOString()
       });
       const capacity=45;
