@@ -1,9 +1,10 @@
 <?php
 /**
- * MAMEHICO 予約システム コアスニペット v2.2.24
+ * MAMEHICO 予約システム コアスニペット v2.2.25
  * 銀座ランチ・ヨシノ系 共通
  *
  * 更新履歴
+ * v2.2.25 - 2026-03-15 Stripe決済を税込金額に修正（unit_amount×1.1）、yoshino hasFoods時のfood_quantity対応、success pageのfood計算修正
  * v2.2.24 - 2026-03-15 yoshino完了ページのdocument.titleをevent_titleに動的変更（「ヨシノ」→「始めて続ける」等）
  * v2.2.23 - 2026-03-15 システム更新をトップレベルメニューに変更（サブメニュー依存解消）
  * v2.2.22 - 2026-03-15 create-checkoutのmetadataにseat_price追加（yoshinoメール¥0バグ修正）、Firestore書き込みにseat_total/food_total/coin_total追加
@@ -27,8 +28,8 @@
 // ============================================================
 add_action('wp_enqueue_scripts', function() {
     $dir = get_stylesheet_directory_uri();
-    wp_enqueue_style( 'mamehico-reservation', $dir . '/mamehico-reservation.css', [], '2.2.20');
-    wp_enqueue_script('mamehico-reservation', $dir . '/mamehico-reservation-core.js', [], '2.2.20', true);
+    wp_enqueue_style( 'mamehico-reservation', $dir . '/mamehico-reservation.css', [], '2.2.25');
+    wp_enqueue_script('mamehico-reservation', $dir . '/mamehico-reservation-core.js', [], '2.2.25', true);
 });
 
 // ============================================================
@@ -67,6 +68,8 @@ function mamehico_create_checkout(WP_REST_Request $request) {
     $coin        = intval($request->get_param('coin') ?? 0);
     $food_label  = sanitize_text_field($request->get_param('food_label') ?? 'なし');
     $food_price  = intval($request->get_param('food_price') ?? 0);
+    $food_quantity = intval($request->get_param('food_quantity') ?? 0);
+    if ($food_quantity < 1) $food_quantity = $count; // デフォルトはcount（ginza互換）
     $food_box_selections_json = sanitize_text_field($request->get_param('food_box_selections') ?? '[]');
 
     if (!$date || !$slot || !$count || !$name || !$email)
@@ -82,28 +85,30 @@ function mamehico_create_checkout(WP_REST_Request $request) {
 
     $line_items = [];
     $idx = 0;
+    // [v2.2.25] unit_amountを税込（×1.1）でStripeに渡す
+    $tax_rate = 1.1;
 
     if ($seat_price > 0) {
         $line_items['line_items[' . $idx . '][price_data][currency]']                  = 'jpy';
-        $line_items['line_items[' . $idx . '][price_data][product_data][name]']        = $event_title . ' ' . $date . ' ' . $slot . ' ' . $count . '名';
-        $line_items['line_items[' . $idx . '][price_data][unit_amount]']               = $seat_price;
+        $line_items['line_items[' . $idx . '][price_data][product_data][name]']        = $event_title . '（税込） ' . $date . ' ' . $slot . ' ' . $count . '名';
+        $line_items['line_items[' . $idx . '][price_data][unit_amount]']               = (int) floor($seat_price * $tax_rate);
         $line_items['line_items[' . $idx . '][quantity]']                              = $count;
         $idx++;
     }
 
     if ($coin > 0) {
         $line_items['line_items[' . $idx . '][price_data][currency]']                  = 'jpy';
-        $line_items['line_items[' . $idx . '][price_data][product_data][name]']        = 'おうえんコイン';
-        $line_items['line_items[' . $idx . '][price_data][unit_amount]']               = $coin;
+        $line_items['line_items[' . $idx . '][price_data][product_data][name]']        = 'おうえんコイン（税込）';
+        $line_items['line_items[' . $idx . '][price_data][unit_amount]']               = (int) floor($coin * $tax_rate);
         $line_items['line_items[' . $idx . '][quantity]']                              = 1;
         $idx++;
     }
 
     if ($food_price > 0 && $food_label !== 'なし') {
         $line_items['line_items[' . $idx . '][price_data][currency]']                  = 'jpy';
-        $line_items['line_items[' . $idx . '][price_data][product_data][name]']        = $food_label;
-        $line_items['line_items[' . $idx . '][price_data][unit_amount]']               = $food_price;
-        $line_items['line_items[' . $idx . '][quantity]']                              = $count;
+        $line_items['line_items[' . $idx . '][price_data][product_data][name]']        = $food_label . '（税込）';
+        $line_items['line_items[' . $idx . '][price_data][unit_amount]']               = (int) floor($food_price * $tax_rate);
+        $line_items['line_items[' . $idx . '][quantity]']                              = $food_quantity;
         $idx++;
     }
 
@@ -129,6 +134,7 @@ function mamehico_create_checkout(WP_REST_Request $request) {
         'metadata[food_label]'             => $food_label,
         'metadata[seat_price]'             => (string) $seat_price,
         'metadata[food_price]'             => (string) $food_price,
+        'metadata[food_quantity]'          => (string) $food_quantity,
         'metadata[food_box_selections]'    => $food_box_selections_json,
     ]);
 
@@ -614,7 +620,7 @@ async function init(){
       const app=getApps().find(a=>a.name==="mamehico-res")||initializeApp(fbCfg,"mamehico-res");
       const db=getFirestore(app);
       const slotKey=slot.replace(":",""),sdid=date+"_"+slotKey;
-      const seatPriceVal=+(meta.seat_price||0),coinVal=+(coin||0),foodVal=+(food_price||0);
+      const seatPriceVal=+(meta.seat_price||0),coinVal=+(coin||0),foodVal=+(food_price||0),foodQty=+(meta.food_quantity||count);
       await setDoc(doc(db,"yoshino_reservations",sid),{
         date,slot,slot_end:slot_end||"",count:+count,name,email,
         phone:meta.phone||"",stripe_session_id:sid,
@@ -622,7 +628,7 @@ async function init(){
         event_title:event_title||"",
         coin:coinVal,food_label:food_label||"なし",food_price:foodVal,
         food_box_selections:foodBoxSelections,
-        seat_total:seatPriceVal*+count,food_total:foodVal*+count,coin_total:coinVal,
+        seat_total:seatPriceVal*+count,food_total:foodVal*foodQty,coin_total:coinVal,
         created_at:new Date().toISOString()
       });
       const capacity=45;
@@ -630,8 +636,8 @@ async function init(){
       if(ss.exists())await updateDoc(doc(db,"yoshino_slots",sdid),{booked:increment(+count)});
       else await setDoc(doc(db,"yoshino_slots",sdid),{booked:+count,capacity,date,slot,event_id:event_id||"yoshino"});
       localStorage.setItem(pk,"1");
-      const seatPrice=+(meta.seat_price||0),coinAmt=+(coin||0),foodAmt=+(food_price||0);
-      const total=seatPrice*+count+coinAmt+(foodAmt*+count);
+      const seatPrice=+(meta.seat_price||0),coinAmt=+(coin||0),foodAmt=+(food_price||0),fQty=+(meta.food_quantity||count);
+      const total=seatPrice*+count+coinAmt+(foodAmt*fQty);
       await fetch(apiBase+"/send-confirmation",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
         mode:"yoshino",event_id:event_id||"yoshino",event_title:event_title||"",
         name,email,phone:meta.phone||"",date,slot,count:+count,
@@ -641,15 +647,15 @@ async function init(){
       })});
     }
     const[y,m,d]=date.split("-"),dateObj=new Date(+y,+m-1,+d);
-    const coinAmt=+(coin||0),foodAmt=+(food_price||0),seatPrice=+(meta.seat_price||0);
-    const total=seatPrice*+count+coinAmt+(foodAmt*+count);
+    const coinAmt=+(coin||0),foodAmt=+(food_price||0),seatPrice=+(meta.seat_price||0),fQty2=+(meta.food_quantity||count);
+    const total=seatPrice*+count+coinAmt+(foodAmt*fQty2);
     const detailRows=[
       ["日付",+m+"月"+ +d+"日（"+DJ[dateObj.getDay()]+"）"],
       ["時間",slot+(slot_end?" — "+slot_end:"")],
       ["人数",count+"名"],["お名前",name+" 様"],["お支払い","クレジットカード"]
     ];
     if(coinAmt>0)detailRows.push(["おうえんコイン","¥"+coinAmt.toLocaleString()]);
-    if(foodAmt>0)detailRows.push([food_label,"¥"+(foodAmt*+count).toLocaleString()]);
+    if(foodAmt>0)detailRows.push([food_label,"¥"+(foodAmt*fQty2).toLocaleString()]);
     if(total>0){
       detailRows.push(["消費税（10%）","¥"+Math.floor(total*.1).toLocaleString()]);
       detailRows.push(["合計","¥"+Math.floor(total*1.1).toLocaleString()]);
